@@ -6,6 +6,8 @@
 #include <linux/pkt_cls.h>
 
 
+
+
 struct connection {
     unsigned short src_port;
     unsigned short dst_port;
@@ -22,8 +24,9 @@ BPF_HASH(connections, struct connection, struct statistics, 1024);
 
 int monitor(struct xdp_md *ctx) {
 
-    unsigned char UDP = 0x17;
-    unsigned char TCP = 0x06;
+    unsigned char UDP    = 0x17;
+    unsigned char TCP    = 0x06;
+    unsigned short HTTPS = 443;
 
 
     // Packet captured
@@ -63,10 +66,10 @@ int monitor(struct xdp_md *ctx) {
         dst_port = (unsigned short) tcp_header->dest;
 
         struct connection new_connection = {
-            .src_ip   = ntohl(src_ip),
-            .dst_ip   = ntohl(dst_ip),
-            .src_port = src_port,
-            .dst_port = dst_port
+            .src_ip   = __constant_htonl(src_ip),
+            .dst_ip   = __constant_htonl(dst_ip),
+            .src_port = __constant_htons(src_port),
+            .dst_port = __constant_htons(dst_port),
         };
         struct statistics new_statistics = {
             .packets = 0,
