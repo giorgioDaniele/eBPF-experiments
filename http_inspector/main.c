@@ -10,33 +10,15 @@
 BPF_PERF_OUTPUT(events);
 
 struct event_data {
-
-    unsigned long long hours;
-    unsigned long long minutes;
-    unsigned long long seconds;
-    unsigned int packet_len;
-    unsigned char* packet_buffer;
+    unsigned int bytes_before_http;
 };
 
-static unsigned long get_nsecs(void) {
-    return bpf_ktime_get_ns();
-}
-
 int http_monitor (struct xdp_md *ctx) {
-
-    
-    unsigned long long timestamp_ns  = get_nsecs();
-    unsigned long long timestamp_sec = timestamp_ns / 1000000000;
-    
-    struct event_data new_packet_received = {
-        .hours   = timestamp_sec / 3600,
-        .minutes = (timestamp_sec % 3600) / 60,
-        .seconds = timestamp_sec % 60,
-    };
 
     void *data_end = (void *)(long)ctx->data_end;
     void *data     = (void *)(long)ctx->data;
     unsigned int packet_len = data_end - data;
+
 
     if (data + sizeof(struct ethhdr) + sizeof(struct iphdr) + sizeof(struct tcphdr) > data_end)
         return XDP_PASS;
@@ -52,12 +34,20 @@ int http_monitor (struct xdp_md *ctx) {
 
     // Check if the packet's destination port is 80 (HTTP)
     if (tcp->source == __constant_htons(80)) {
-        bpf_trace_printk("-----------------------------------------------------------------");
-        bpf_trace_printk("Packet Bytes = %d START POINTER = 0x%x END POINTER = 0x%x", packet_len, data, data_end);
-        new_packet_received.packet_buffer =  (unsigned char*) data;
-        new_packet_received.packet_len    =  packet_len;
-        events.perf_submit_skb(ctx, packet_len, &new_packet_received, sizeof(new_packet_received));
-        bpf_trace_printk("-----------------------------------------------------------------");
+         // Calculate header sizes
+        int eth_header_size = sizeof(struct ethhdr);
+        int ip_header_size  = ip->ihl * 4;
+        int tcp_header_size = tcp->doff * 4;
+     
+        struct event_data http_packet = {
+            .bytes_before_http = (unsigned int) eth_header_size + ip_header_size + tcp_header_size,
+        };
+
+        // Log the header sizes
+        bpf_trace_printk("Ethernet Header Size: %d\n", eth_header_size);
+        bpf_trace_printk("IP Header Size: %d\n",       ip_header_size);
+        bpf_trace_printk("TCP Header Size: %d\n",      tcp_header_size);
+        events.perf_submit_skb(ctx, packet_len, &http_packet, sizeof(http_packet));
     }
     return XDP_PASS;
 }

@@ -7,6 +7,8 @@ import struct
 import os
 
 
+
+
 BPF_SOURCE_FILE = 'main.c'
 FUNCTION        = "http_monitor"
 MAP             = "connections"
@@ -21,17 +23,15 @@ def process_event(cpu, data, size):
     # Define the event data structure
     class EventData(ct.Structure):
         _fields_ = [
-            ("hours",          ct.c_uint64),
-            ("minutes",        ct.c_uint64),
-            ("seconds",        ct.c_uint64),
-            ("packet_len",     ct.c_uint32),
-            ("packet_buffer",  ct.c_ubyte * (size - ct.sizeof(ct.c_ubyte))),
+            ("http_packet", ct.c_uint32),
+            ("raw",         ct.c_ubyte * (size - ct.sizeof(ct.c_uint32))),
         ]
     event = ct.cast(data, ct.POINTER(EventData)).contents
-    # Format the datetime object as hours:minutes:seconds
-    print("Timestamp: {:02d}:{:02d}:{:02d}".format(event.hours, event.minutes, event.seconds))
-    print(f"Length: {event.packet_len}")
-    for element in event.packet_buffer[12:]:
+    #Print metadata
+    print(f"Packet  Length: {size}")
+    print(f"Header Length:  {event.http_packet}")
+    #Print packet
+    for element in event.raw:
         print("{:02x}".format(element), end=" ")
     print("")
     print("--------------------------------------------------------------")
