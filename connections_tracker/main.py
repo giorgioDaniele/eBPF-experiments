@@ -37,8 +37,22 @@ bpf_map     = bpf_program.get_table(MAP)
 bpf_program.attach_xdp(device, function, 0)
 
 
+
+def on_exit():
+    #system('clear')
+    print("Removing filter from device")
+    bpf_program.remove_xdp(device, 0)
+    #sleep(2)
+    print("Removed")
+    print("Bye!")
+    #sleep(2)
+    #system('clear')
+
+
 os.system('clear')
-print("Monitoring traffic, hit CTRL+C to stop")
+print("----------------------------------")
+print("Enter CTRL + C to stop XDP program")
+print("----------------------------------")
 while True:
     try:
         current_time = time.strftime('%H.%M.%S:')
@@ -52,6 +66,5 @@ while True:
         print("---------------------------------------")
         time.sleep(PERIOD)
     except KeyboardInterrupt:
-        print("Removing filter from device")
+        on_exit()
         break
-bpf_program.remove_xdp(device, 0)
