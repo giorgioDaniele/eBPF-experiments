@@ -10,7 +10,7 @@ A collection of experiments with eBPF, a technology that can run sandboxed progr
 - [HTTP Inspector](#HTTP_Inspector)
 
 
-### Connections Log
+## Connections Log
 This project aims to evaluate the duration of TCP connections created by the host to download data over the network.
 
 ```Shell
@@ -30,7 +30,7 @@ Src IP: 18.159.254.57:80, Dst IP: 192.168.143.246:54322
     Duration: 138.09 ms
 ```
 
-### Connections Tracker
+## Connections Tracker
 This project aims to evaluate the duration of how many packets and bytes are exchanged per each TCP connection.
 
 ```Shell
@@ -63,7 +63,7 @@ Ongoing connections at 08.13.52:
 ---------------------------------------
 ```
 
-### HTTP Inspector
+## HTTP Inspector
 This project aims to inspect HTTP traffic.
 
 ```Shell
