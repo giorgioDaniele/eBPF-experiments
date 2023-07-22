@@ -28,7 +28,7 @@ def lookup_ip(ip):
 BPF_SOURCE_FILE = 'main.c'
 FUNCTION        = "monitor"
 MAP             = "connections"
-PERIOD          = 30
+PERIOD          = 2
 
 device      = "wlp1s0" 
 bpf_program = bcc.BPF(src_file=BPF_SOURCE_FILE) 

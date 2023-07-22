@@ -7,7 +7,7 @@ FUNCTION        = "http_monitor"
 MAP             = "connections"
 PERIOD          = 30
 
-output_file = open("result.dump", "w")  # Open the file in write mode
+#output_file = open("result.dump", "w")  # Open the file in write mode
 
 device      = "wlp1s0" 
 bpf_program = BPF(BPF_SOURCE_FILE)
@@ -24,12 +24,12 @@ def process_event(cpu, data, size):
     event = ct.cast(data, ct.POINTER(EventData)).contents
     #Print metadata
     if(any(byte != 0x00 for byte in event.raw[event.bytes_before_http:])):
-        print(f"Packet  Length: {size}", file=output_file)
-        print(f"Header  Lenght: {event.bytes_before_http}", file=output_file)
+        print(f"Packet  Length: {size}")
+        print(f"Header  Lenght: {event.bytes_before_http}")
         ascii_sequence = ''.join(chr(byte) for byte in event.raw[event.bytes_before_http:])
-        print(ascii_sequence, file=output_file)
-        print("", file=output_file)
-        print("--------------------------------------------------------------", file=output_file)
+        print(ascii_sequence)
+        print("")
+        print("--------------------------------------------------------------")
     return
 
 bpf_program["events"].open_perf_buffer(process_event)
