@@ -4,6 +4,7 @@
         "if_ether.h": "c",
         "tcp.h": "c",
         "bpf.h": "c",
-        "udp.h": "c"
+        "udp.h": "c",
+        "ip.h": "c"
     }
 }

@@ -1,6 +1,5 @@
 from   ipaddress import ip_address
-from   socket import inet_ntoa
-from   socket import inet_aton
+
 
 import ctypes
 

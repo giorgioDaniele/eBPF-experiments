@@ -1,86 +1,80 @@
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Weverything"
+
 #include <linux/bpf.h>
 #include <linux/if_ether.h>
 #include <linux/ip.h>
-#include <linux/udp.h>
 #include <linux/tcp.h>
-#include <linux/pkt_cls.h>
 
+#define ETHERTYPE_IPv4 0x0800
+#define PROTOCOL_TCP   0x06
+#define IS_NOT_ETHERTYPE_IP(ethtype)  ((ethtype)  != ETHERTYPE_IPv4)
+#define IS_NOT_PROTOCOL_TCP(protocol) ((protocol) != PROTOCOL_TCP)
 
+#define IT_DOES_NOT_EXISTS(value) ((value) == NULL)
 
+struct key_t {
 
-struct connection {
-    unsigned short src_port;
-    unsigned short dst_port;
-    unsigned int   src_ip;
-    unsigned int   dst_ip;
+    __u32 srcip;
+    __u32 dstip;
+    __u16 sport;
+    __u16 dport;
+
 };
 
-struct statistics {
-    unsigned long packets;
-    unsigned long bytes;
+struct value_t {
+
+    __u64 bytes;
+    __u64 packets;
+
 };
 
-BPF_HASH(connections, struct connection, struct statistics, 1024);
 
-int monitor(struct xdp_md *ctx) {
+BPF_HASH(connections, struct key_t, struct value_t, 256);
 
-    unsigned char UDP    = 0x17;
-    unsigned char TCP    = 0x06;
-    unsigned short HTTPS = 443;
+int tcp_stats_reporting (struct xdp_md *ctx) {
 
+    void * data_end = (void *)(long)ctx->data_end;
+    void * data     = (void *)(long)ctx->data;
 
-    // Packet captured
-    void *data     = (void *)(unsigned long)ctx->data;
-    void *data_end = (void *)(unsigned long)ctx->data_end;
+    struct ethhdr * ethernet_layer;
+    struct iphdr  * ip_layer;
+    struct tcphdr * tcp_layer;
 
-    unsigned short offset = 0;
-    unsigned int   src_ip = 0;
-    unsigned int   dst_ip = 0;
-    unsigned short src_port = 0;
-    unsigned short dst_port = 0;
+    ethernet_layer = (struct ethhdr *) data;
+    if(ethernet_layer + 1 > data_end)
+        return XDP_PASS;
+    if(IS_NOT_ETHERTYPE_IP(__constant_ntohs(ethernet_layer->h_proto)))
+        return XDP_PASS;
+    
+    ip_layer = (struct iphdr *) (data + sizeof(struct ethhdr));
+    if(ip_layer + 1 > data_end)
+        return XDP_PASS;
+    if(IS_NOT_PROTOCOL_TCP((ip_layer->protocol)))
+        return XDP_PASS;
 
-    struct ethhdr *ethernet_header = data;
-    offset = sizeof(*ethernet_header);
-    if (data + offset > data_end) {
-        bpf_trace_printk("Packet discarded because of layer 2\n");
-        return XDP_DROP;
+    tcp_layer = (struct tcphdr *) (data + sizeof(struct ethhdr) + sizeof(struct tcphdr));
+    if(tcp_layer + 1 > data_end)
+        return XDP_PASS;
+    
+    struct key_t key = {
+        .srcip = __constant_ntohl(ip_layer->saddr),   .dstip = __constant_ntohl(ip_layer->daddr),
+        .sport = __constant_ntohs(tcp_layer->source), .dport = __constant_ntohs(tcp_layer->dest)
+    };
+    struct value_t value = {
+        .bytes = (__u64) 0, .packets = (__u64) 0
+    };
+
+    struct value_t * previous_value = connections.lookup(&key);
+
+    if(IT_DOES_NOT_EXISTS(previous_value)) {
+        connections.insert(&key, &value);
+    } else {
+        value.bytes   += (__u64) (data_end - data);
+        value.packets += (__u64) 1;
+        connections.update(&key, &value);
     }
-    struct iphdr *ip_header = data + offset;
-    offset += sizeof(*ip_header);
-    if (data + offset > data_end) {
-        bpf_trace_printk("Packet discarded because of layer 3\n");
-        return XDP_DROP;
-    }
-
-    src_ip = (unsigned int)ip_header->saddr;
-    dst_ip = (unsigned int)ip_header->daddr;
-
-    if(ip_header->protocol == TCP) {
-        struct tcphdr * tcp_header = data + offset;
-        offset += sizeof(*tcp_header);
-        if (data + offset > data_end) {
-            bpf_trace_printk("Packet discarded because of layer 4\n");
-            return XDP_DROP;
-        }
-        src_port = (unsigned short) tcp_header->source;
-        dst_port = (unsigned short) tcp_header->dest;
-
-        struct connection new_connection = {
-            .src_ip   = __constant_htonl(src_ip),
-            .dst_ip   = __constant_htonl(dst_ip),
-            .src_port = __constant_htons(src_port),
-            .dst_port = __constant_htons(dst_port),
-        };
-        struct statistics new_statistics = {
-            .packets = 0,
-            .bytes = 0,
-        };
-        struct statistics *current_statistics = connections.lookup_or_try_init(&new_connection, &new_statistics);
-        if (!current_statistics) {
-            return XDP_PASS;
-        }
-        __sync_fetch_and_add(&current_statistics->packets, 1);
-        __sync_fetch_and_add(&current_statistics->bytes, (data_end - data));
-    } 
     return XDP_PASS;
 }
+
+#pragma clang diagnostic pop
