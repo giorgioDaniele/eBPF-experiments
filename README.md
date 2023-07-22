@@ -38,33 +38,23 @@ Src IP: 18.159.254.57:80, Dst IP: 192.168.143.246:54322
 This project aims to evaluate the duration of how many packets and bytes are exchanged per each TCP connection.
 
 ```Shell
-$ cd connections_log
-$ sudo python3 main.py
----------------------------------------
-Ongoing connections at 08.13.52:
-
-  Src IP: 35.184.229.211
-  Dst Port: 47466
-  Src Port: 443
-  Packets exchanged: 1
-  Bytes exchanged: 90
-  Country: United States
-  Region: Iowa
-  City: Council Bluffs
-  ISP: Google LLC
-  AS: AS396982 Google LLC
-
-  Src IP: 208.95.112.1
-  Dst Port: 32878
-  Src Port: 80
-  Packets exchanged: 5
-  Bytes exchanged: 835
-  Country: United States
-  Region: Virginia
-  City: Ashburn
-  ISP: Total Uptime Technologies, LLC
-  AS: AS53334 Total Uptime Technologies, LLC
----------------------------------------
+$ cd connections_tracker
+$ sudo python3 main.py -i <ifname> -p <period>
+---------------------------------------------------------------
+ Connections report, [2023-07-22 09:56:24]: 
+|    Source      IP:   140.82.121.4 (Remote server) 
+|    Destination IP:   192.168.143.246 (My host)       
+|    Source      Port: 443                              
+|    Destination Port: 41854                              
+|        Bytes:   90                                     
+|        Packets: 1                                   
+|    Source      IP:   188.42.191.196 (Remote server) 
+|    Destination IP:   192.168.143.246 (My host)       
+|    Source      Port: 443                              
+|    Destination Port: 45244                              
+|        Bytes:   66                                     
+|        Packets: 1
+----------------------------------------------------------------
 ```
 
 ## HTTP Inspector
