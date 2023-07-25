@@ -5,6 +5,18 @@
         "tcp.h": "c",
         "bpf.h": "c",
         "udp.h": "c",
-        "ip.h": "c"
+        "ip.h": "c",
+        "libbpf.h": "c",
+        "bpftable.h": "c",
+        "bcc_common.h": "c",
+        "bcc_usdt.h": "c",
+        "bcc_elf.h": "c",
+        "bcc_version.h": "c",
+        "bpf_module.h": "c",
+        "*.tcc": "c",
+        "deque": "c",
+        "string": "c",
+        "unordered_map": "c",
+        "vector": "c"
     }
 }

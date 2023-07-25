@@ -14,24 +14,24 @@
        it replaces the existing one!
 */
 
-BPF_HASH(counter_table, __u64, __u64, 1024);
+BPF_HASH(counter_table, unsigned long, unsigned long, 1024);
 
 int execve_monitor(void *ctx) {
 
-    __u32 USER_ID_MASK = 0xFFFFFFFF;
-    __u64  user_id;
-    __u64 *counter;
+    unsigned int USER_ID_MASK = 0xFFFFFFFF;
+    unsigned long  user_id;
+    unsigned long *counter;
 
     // bpf_get_current_uid_gid() returns a 64-bit value
     // The 32 most significant bits are the user_id
     user_id = bpf_get_current_uid_gid() & USER_ID_MASK;
     counter = counter_table.lookup(&user_id);
     if (counter == NULL) {
-        __u64 new_value = 1;
+        unsigned long new_value = 1;
         counter_table.insert(&user_id, &new_value);
     }
     else {
-        __u64 new_value = *counter + 1;
+        unsigned long new_value = *counter + 1;
         counter_table.update(&user_id, &new_value);
     }
 

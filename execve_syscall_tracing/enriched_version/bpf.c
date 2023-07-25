@@ -24,10 +24,10 @@
 
 int execve_monitor(void *ctx) {
 
-    __u32 USER_ID_MASK = 0xFFFFFFFF;
+    unsigned int USER_ID_MASK = 0xFFFFFFFF;
 
     struct data_t data = {};
-    __u8 message[100] = "This a message";
+    char message[100] = "This a message";
     // bpf_get_current_uid_gid() returns a 64-bit value
     // The 32 most significant bits are the process ID, which
     // has triggered the eBPF routine, while the 32 least
