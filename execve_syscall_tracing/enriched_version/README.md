@@ -1,12 +1,12 @@
 # Enriched Version
 
-The eBPF program is injected into the kernel to incercept whenever syscall **execve()** is invoked. Notice that execve() executes the program referred to by pathname. This causes the program that is currently being run by the calling process to be replaced with a new program, with newly initialized stack, heap, and (initialized and uninitialized) data segments.
+The eBPF program is injected into the kernel to incercept whenever syscall ```execve()``` is invoked. Notice that ```execve()``` executes the program referred to by pathname. This causes the program that is currently being run by the calling process to be replaced with a new program, with newly initialized stack, heap, and (initialized and uninitialized) data segments.
 
 ## Workflow
 
 ### C-side
 
-This file is the one which is going to be injected into the kernel. In order to transfer data from kernel space to user space, that is the .py script. Instead of using a hash map, I use a ring buffer, that is shared memory area from kernel space to user space. With ring buffers, I can transfer more general data from eBPF routine to user space reader. It is a matter of providing a structure for such data.
+This file is the one which is going to be injected into the kernel. In order to transfer data from kernel space to user space, that is the ```.py``` script. Instead of using a hash map, I use a ring buffer, that is shared memory area from kernel space to user space. With ring buffers, I can transfer more general data from eBPF routine to user space reader. It is a matter of providing a structure for such data.
 
 ```c
 BPF_PERF_OUTPUT(output);
@@ -63,7 +63,7 @@ print("#####################################")
 $ sudo python main.py
 
 Run! Hit CTRL + C to stop eBPF script
-#####################################
+...
 PID = 75749, User ID = 1001, Command =  bash, Message = This a message
 PID = 75750, User ID = 1001, Command =  bash, Message = This a message
 PID = 75752, User ID = 1001, Command =  soffice, Message = This a message
