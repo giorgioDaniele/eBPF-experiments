@@ -1,4 +1,4 @@
-# eBPF-pcap-net-random-stuff
+# eBPF-experiments
 
 ![Linux](https://img.shields.io/badge/platform-linux-yellow)
 ![Python](https://img.shields.io/badge/language-python-green)
