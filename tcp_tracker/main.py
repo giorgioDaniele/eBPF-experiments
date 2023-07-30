@@ -2,11 +2,12 @@ from bcc       import BPF
 from pyroute2  import IPRoute
 from time      import sleep
 from time      import strftime
-from ipaddress import ip_address
 from os        import system
-
+from ipaddress import ip_address
+import socket
 
 iproute = IPRoute()
+
 
 def format_ip_port(ip, port):
     # Format IP address to 15 characters, right-aligned
@@ -16,7 +17,6 @@ def format_ip_port(ip, port):
     # Combine the formatted IP and port with a colon separator
     formatted_ip_port = "{}:{}".format(formatted_ip, formatted_port)
     return formatted_ip_port
-
 
 def format_stats(bytes, packets): 
 
@@ -44,7 +44,13 @@ def main():
         Notice that it may return many results,
         but I want the first one
     """
-    index = iproute.link_lookup(ifname = "wlp1s0")[0]
+    index      = iproute.link_lookup(ifname = "wlp1s0")[0]
+    addresses  = iproute.get_addr(index=index)
+    ipaddress = 0
+    for addr in addresses:
+        if addr['family'] == socket.AF_INET:
+            ipaddress = addr['attrs'][0][1]
+    print(str(ipaddress))
     """
         The clsact qdisc provides a mechanism to attach integrated 
         filter-action classifiers to an interface, either at 
