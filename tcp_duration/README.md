@@ -73,6 +73,8 @@ $ cat statistics.dat
 ...
 ```
 
+Hist diagram result
+
 ![Screenshot](./img/graph.png)
 
 -----
