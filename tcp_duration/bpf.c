@@ -6,27 +6,56 @@
 #include <linux/pkt_cls.h>
 
 
-struct snapshot_t {
 
-    unsigned int  valid;
-    unsigned int  src_ip; unsigned int src_port;
-    unsigned int  dst_ip; unsigned int dst_port;
 
-    unsigned int syn;
-    unsigned int rst;
-    unsigned int fin;
-    unsigned int urg;
-    unsigned int ack; 
-    unsigned int psh;
+    struct snapshot_t {
 
-};
+        unsigned int  valid;
+        unsigned int  src_ip; unsigned int src_port;
+        unsigned int  dst_ip; unsigned int dst_port;
 
-struct tcp_packet {
+        unsigned int syn;
+        unsigned int rst;
+        unsigned int fin;
+        unsigned int urg;
+        unsigned int ack; 
+        unsigned int psh;
 
-    unsigned int  src_ip; unsigned int src_port;
-    unsigned int  dst_ip; unsigned int dst_port;
+    };
 
-};
+    struct tcp_packet {
+
+        unsigned int  src_ip; 
+        unsigned int src_port;
+        unsigned int  dst_ip;
+        unsigned int dst_port;
+
+    };
+
+#define MAX_SIZE 512
+
+    struct key_t {
+        unsigned int  src_ip; 
+        unsigned int  src_port;
+        unsigned int  dst_ip; 
+        unsigned int  dst_port;
+    };
+    struct value_t {
+        unsigned long SYN_timestamp;
+        unsigned long FIN_timestamp;
+    };
+
+
+    BPF_PERF_OUTPUT(output);
+    struct data_t {
+        unsigned int  src_ip; 
+        unsigned int  src_port;
+        unsigned int  dst_ip; 
+        unsigned int  dst_port;
+        unsigned long duration_ns;
+    };
+
+    BPF_HASH(connections, struct key_t, struct value_t, MAX_SIZE);
 
 
 static __always_inline void *move_on
@@ -40,30 +69,6 @@ static __always_inline int   is_tcp
 static __always_inline void get_snapshot
     (void * data, void * data_end, struct snapshot_t * snapshot);
 
-#define MAX_SIZE 512
-
-struct key_t {
-    unsigned int  src_ip; 
-    unsigned int  src_port;
-    unsigned int  dst_ip; 
-    unsigned int  dst_port;
-};
-struct value_t {
-    unsigned long SYN_timestamp;
-    unsigned long FIN_timestamp;
-};
-
-
-    BPF_PERF_OUTPUT(output);
-    struct data_t {
-        unsigned int  src_ip; 
-        unsigned int  src_port;
-        unsigned int  dst_ip; 
-        unsigned int  dst_port;
-        unsigned long duration_ns;
-    };
-
-    BPF_HASH(connections, struct key_t, struct value_t, MAX_SIZE);
 
 int trace_tcp_duration (struct __sk_buff * ctx) {
 
@@ -138,7 +143,7 @@ int trace_tcp_duration (struct __sk_buff * ctx) {
             .dst_ip   = new_reverse_key.dst_ip,
             .src_port = new_reverse_key.src_port,
             .dst_port = new_reverse_key.dst_port,
-            // Get duration in milliseconds
+            // Get duration in nanoseconds
             .duration_ns = (value->FIN_timestamp - value->SYN_timestamp)
         };
         // Purge processed connections

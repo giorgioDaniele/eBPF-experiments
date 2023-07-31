@@ -38,18 +38,14 @@ struct data_t {
 -----
 ### Python-side
 
-The Control Plane listens at any event for a given amount of time before exiting
+The Control Plane listens indefinetely until you hit CTRL + C.
 
 ```python
-print(f"Writing on statistics.dat for {duration} seconds...")
-# Get the current time in seconds
-start_time = time()
-
-while (time() - start_time) < duration:
-    try:
+try:
+    while True:
         bpf_prog.perf_buffer_poll()
-    except KeyboardInterrupt:
-        break
+except KeyboardInterrupt:
+    pass
 ```
 
 -----
@@ -59,22 +55,18 @@ while (time() - start_time) < duration:
 $ cat statistics.dat
 
 ...
-192.168.143.246:60634 -> 188.184.100.182:80    | Duration: 82038937
-192.168.143.246:60636 -> 188.184.100.182:80    | Duration: 76524672
-192.168.143.246:60638 -> 188.184.100.182:80    | Duration: 84152228
-192.168.143.246:60640 -> 188.184.100.182:80    | Duration: 72229949
-192.168.143.246:60642 -> 188.184.100.182:80    | Duration: 72942887
-192.168.143.246:60648 -> 188.184.100.182:80    | Duration: 74185206
-192.168.143.246:60664 -> 188.184.100.182:80    | Duration: 76232049
-192.168.143.246:60666 -> 188.184.100.182:80    | Duration: 80710703
-192.168.143.246:60672 -> 188.184.100.182:80    | Duration: 79343380
-192.168.143.246:60678 -> 188.184.100.182:80    | Duration: 70982633
-192.168.143.246:60684 -> 188.184.100.182:80    | Duration: 70589822
+192.168.143.246:43052 ->   137.226.34.46:80    | Duration: 0.244123127  s
+192.168.143.246:40284 -> 130.192.181.230:443   | Duration: 5.219493615  s
+192.168.143.246:44750 ->   130.192.95.68:443   | Duration: 9.804791219  s
+192.168.143.246:44740 ->   130.192.95.68:443   | Duration: 10.108454423 s
+192.168.143.246:44722 ->   130.192.95.68:443   | Duration: 16.002086138 s
+192.168.143.246:33726 ->  130.192.55.240:443   | Duration: 6.504344594  s
+192.168.143.246:33722 ->  130.192.55.240:443   | Duration: 7.714727185  s
 ...
 ```
 
 Hist diagram result
 
-![Screenshot](./img/graph.png)
+![Screenshot](./tcp_duration/img/graph.png)
 
 -----
