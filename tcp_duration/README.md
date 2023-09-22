@@ -67,6 +67,6 @@ $ cat statistics.dat
 
 Hist diagram result
 
-![Screenshot](./tcp_duration/img/graph.png)
+![Screenshot](../img/graph.png)
 
 -----
